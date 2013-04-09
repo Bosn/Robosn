@@ -133,6 +133,7 @@ function processNewPost(post, cb) {
 					getCounter(action.key, function(count) {
 						setCounter(action.key);
 						action.param1 = action.param1.replace('{keyCounter}', count);
+						action.param1 = action.param1.replace('{word}', action.wordText);
 						cb({isOk : true, action : action});	
 					});
 				}
