@@ -36,13 +36,13 @@
 			if (isProcessed(map)) {
 				continue;
 			}
+			_processedMidList.push(map.mid);
 			
 			if (exists(HACK_NAME, map.name)) {
 				console.log('new post of ' + map.name + ' found!');
 				// don't process forward post
 				if (map.rootuid) {
 					console.log('found rootuid, so this is a forward post, ignored, rootid=' + map.rootuid);
-					_processedMidList.push(map.mid);
 					continue;
 				}
 
@@ -56,7 +56,6 @@
 						if (data.isOk) {
 							process(ele, data.action); 
 						}
-						_processedMidList.push(map.mid);
 					});
 				}(ele);
 			}
