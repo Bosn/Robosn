@@ -1,28 +1,11 @@
 !function(undefined) {
 	'use strict';
-	var HACK_NAME = '貘吃馍香'; // user name monitored
-	var SEC = 1;		    // prevent flush time interval
-	var INTERVAL = 5;		    // monitor time interval
-
-	var ABOUT_ME = 1;
-	var DIRTY = 2;
-	var DIE = 3;
-	var UGLY = 4;
-	var CAWAYI = 5;
-	var IDOL = 6; 
-	var TECH = 7;
-
-	var _counter = {};
+	var HACK_NAME = ['貘吃馍香', '大城小胖', 'Rayi-', '寒冬winter', '_Franky', '不如归零']; 
+	var SEC = 1;                                // prevent flush time interval
+	var INTERVAL = 5;                           // monitor time interval
+	var SERVER_ROOT = 'http://localhost:1988/'; // server root
+	
 	var _processedMidList = [];
-	var _wordsMap = {
-		'bosn': ABOUT_ME, '霍雍': ABOUT_ME,
-		'屎': DIRTY, '死': DIRTY, '傻': DIRTY, '2b': DIRTY, 'sb': DIRTY, '猪': DIRTY, 'pig': DIRTY, '脑残': DIRTY, 'bitch': DIRTY, '碧池': DIRTY, '小鳮鳮' : DIRTY, '鸡鸡': DIRTY, '豬' : DIRTY,
-		'走好': DIE,
-		'丑': UGLY,
-		'js': TECH, 'javascript': TECH, 'v8': TECH, 'chrome': TECH, 'dom': TECH, 'sql': TECH,
-		'偶': CAWAYI, '活活活': CAWAYI,
-		'马云' : IDOL, 'winter': IDOL, 'franky': IDOL, 'erik' : IDOL
-	};
 	var ev = document.createEvent('HTMLEvents');
 	ev.initEvent('click', true, true);
 	var lastTime = new Date();
@@ -54,7 +37,7 @@
 				continue;
 			}
 			
-			if (map.name == HACK_NAME) {
+			if (exists(HACK_NAME, map.name)) {
 				console.log('new post of ' + map.name + ' found!');
 				// don't process forward post
 				if (map.rootuid) {
@@ -65,8 +48,17 @@
 
 				console.log('found it! mid=' + map.mid + ', ' + new Date());
 				var content = $(ele).parent().parent().parent().find('.WB_text').html();
-				process(ele, map, content.toLowerCase()); 
-				_processedMidList.push(map.mid);
+				map.content = content;
+
+				// closure for binding ele
+				!function(ele) {
+					sendPostToServer(map, function(data) {
+						if (data.isOk) {
+							process(ele, data.action); 
+						}
+						_processedMidList.push(map.mid);
+					});
+				}(ele);
 			}
 
 		}
@@ -80,92 +72,31 @@
 		return false;
 	}
 
-	function process(ele, map, content) {
-		console.log('processing:mid=' + map.mid);
-		var i, w;
+	function process(ele, action) {
+		console.log('do action: ' + JSON.stringify(action));
 		// flush prevent
-		if (new Date().getTime() - lastTime.getTime() < 1000 * SEC)
-			return;
+		//if (new Date().getTime() - lastTime.getTime() < 1000 * SEC)
+			//return;
 
-		var mine = '';
-		var matched = false;
-		var matchedWord = '';
-		var matchedKey = null;
+		// forward
+		if (action.actionId == 1) {
+			ele.dispatchEvent(ev);
+			$('textarea.W_input')[0].value = action.param1;
 
-		for (w in _wordsMap) {
-			if (content.indexOf(w) != -1) {
-				matchedWord = w;
-				matchedKey = _wordsMap[w];
-				matched = true;
-				break;
-			}
+			// comment to forward post
+			//var ctl1 = $('[node-type="forwardInput"]');
+			// ctl1 && ctl1[0] && (ctl1[0].checked = true);
+
+			// comment to original post
+			var ctl2 = $('[node-type="originInput"]');
+			ctl2 && ctl2[0] && (ctl2[0].checked = true);
+			$('[node-type="submit"]')[0].dispatchEvent(ev);
+		} else if (action.actionId == 2) {
+
+		} else if (action.actionId == 3) {
+
 		}
-
-		if (!matched) {
-			console.log('no matched key, returned');
-			return;
-		}
-		ele.dispatchEvent(ev);
-		var oldVal = $('textarea.W_input')[0].value;
-
-		mine = getResponse(matchedKey, matchedWord);
-		console.log('mine words:' + mine);
-
-		if (oldVal && oldVal.length > 100) {
-			oldVal = oldVal.substring(0, 100);
-		}
-		$('textarea.W_input')[0].value = mine + oldVal;
-
-		// comment to forward post
-		//var ctl1 = $('[node-type="forwardInput"]');
-		// ctl1 && ctl1[0] && (ctl1[0].checked = true);
-
-		// comment to original post
-		var ctl2 = $('[node-type="originInput"]');
-		ctl2 && ctl2[0] && (ctl2[0].checked = true);
-		$('[node-type="submit"]')[0].dispatchEvent(ev);
 		lastTime = new Date();
-	}
-
-	/**
-	 * get response to one matched key
-	 *
-	 * @param {string} key
-	 */
-	function getResponse(key, str) {
-		var res = '';
-		switch (key) {
-			case ABOUT_ME:
-				res = '总提偶干嘛？有啥话不能私下说[害羞][第' + getCounter(key) + '次害羞]';
-				break;
-			case DIRTY:
-				res = '素质，注意素质![鄙视][第' + getCounter(key) + '次鄙视]';
-				break;
-			case TECH:
-				res = '有道理，学习了，呵呵[good][第' + getCounter(key) + '次学习]';
-				break;
-			case UGLY:
-				res = '你也帅不到哪儿去吧...[第' + getCounter(key) + '吐槽莫大]';
-				break;
-			case CAWAYI:
-				res = '一大把年纪了，别装萌了, 还' + str + '...[打哈欠][第' + getCounter(UGLY) + '吐槽莫大]';
-				break;
-			case IDOL:
-				res = str + '怎么了？' + str + '是偶的心中偶像！[第' + getCounter(key) + '次发自肺腑]';
-		}
-		return res;
-	}
-
-	/**
-	 * get counter
-	 *
-	 * @param {string} key
-	 */
-	function getCounter(key) {
-		if (!_counter[key]) {
-			_counter[key] = 0;
-		}
-		return ++_counter[key];
 	}
 
 	function stripHtml(html) {
@@ -190,12 +121,35 @@
 		objRegExp = null;
 		return strOutput;
 	}
+
+	function sendPostToServer(map, cb) {
+		$.ajax({
+			url : SERVER_ROOT + 'sendPost',
+			dataType : 'jsonp',
+			data : {
+				'userId' : map.uid,
+				'id' : map.mid,
+				'content' : stripHtml(map.content)
+			},
+			jsonp : 'callback',
+			success : function(data) {
+				cb(data);
+			}
+		});
+	}
+
+	function exists(arr, item) {
+		for (var i = 0; i < arr.length; i++) {
+			if (arr[i] == item) {
+				return true;
+			}
+		}
+		return false;
+	}
 	console.log('monitor started...');
 
 	// for debug
 	window.exports = {};
-	exports.getCounter = getCounter;
-	exports.getResponse = getResponse;
 	exports._processedMidList = _processedMidList;
 	exports.stripHtml = stripHtml;
 }();
