@@ -38,7 +38,8 @@
 			}
 			_processedMidList.push(map.mid);
 			
-			if (exists(HACK_NAME, map.name)) {
+			if (true) {
+			//if (exists(HACK_NAME, map.name)) {
 				console.log('new post of ' + map.name + ' found!');
 				// don't process forward post
 				if (map.rootuid) {
@@ -51,10 +52,10 @@
 				map.content = content;
 
 				// closure for binding ele
-				!function(ele) {
+				!function(el) {
 					sendPostToServer(map, function(data) {
 						if (data.isOk) {
-							process(ele, data.action); 
+							process(el, data.action); 
 						}
 					});
 				}(ele);

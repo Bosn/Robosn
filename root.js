@@ -18,8 +18,7 @@ var connection = mysql.createConnection({
 	insecureAuth : 'true',
 	password : '880622'
 });
-connection.connect();
-connection.query('USE ' + DATABASE_NAME);
+
 
 // initialize router
 var router = new (journey.Router);
@@ -29,10 +28,13 @@ router.map(function () {
 	});
 
 	this.get('/sendPost').bind(function(req, res, params) {
+		connection.connect();
+		connection.query('USE ' + DATABASE_NAME);
 		doesPostExist(params.id, function(exists){
 			if (exists) {
 				console.log('post with id = ' + params.id + ' exists, ignored');
 				res.send(200, {}, JSONP({isOk : false, msg :'post exists'}, params));
+				connection.end();
 				return;
 			}
 			connection.query('INSERT INTO tb_post SET id = ?, user_id = ?, post_date = ?, content = ?',
@@ -40,6 +42,7 @@ router.map(function () {
 				if (err) throw err;
 				processNewPost(params, function(data) {
 					res.send(200, {}, JSONP(data, params));
+					connection.end();
 				});
 			});
 		});
@@ -51,6 +54,7 @@ require('http').createServer(function (request, response) {
 	request.addListener('data', function (chunk) { body += chunk });
 	request.addListener('end', function () {
 		router.handle(request, body, function (result) {
+			result.headers['Content-Type'] = 'application/x-javascript';
 			response.writeHead(result.status, result.headers);
 			response.end(result.body);
 		});
@@ -130,6 +134,8 @@ function processNewPost(post, cb) {
 				} else {
 					// randomly select an action
 					action = actions[parseInt(Math.random() * actions.length)];
+					console.log('action.length=' + actions.length);
+					console.log(JSON.stringify(actions));
 					getCounter(action.key, function(count) {
 						setCounter(action.key);
 						action.param1 = action.param1.replace('{keyCounter}', count);
