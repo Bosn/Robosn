@@ -1,7 +1,7 @@
-Robosn v0.0.1
+Robosn
 ======
 
-    @version v0.4 - (latest version, in master branch)
+    @version v0.0.1
     @author  Bosn Ma
     @weibo   http://weibo.com/bosn
     @mail    bosn@outlook.com
