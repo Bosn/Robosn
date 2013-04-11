@@ -63,7 +63,7 @@ function doesPostExist(id, cb) {
 }
 
 function processNewPost(post, cb) {
-	console.log('processing new post:' + JSON.stringify(post));
+	//console.log('processing new post:' + JSON.stringify(post));
 	connection.query('SELECT * FROM tb_dictionary', function(err, rows, fields) {
 		if (err) throw err;
 
@@ -80,7 +80,7 @@ function processNewPost(post, cb) {
 				priority : row.priority
 			});
 		}
-		console.log('processing post:id=' + post.id + ', now wordsMap has ' + wordsMap.length + ' items.');
+		//console.log('processing post:id=' + post.id + ', now wordsMap has ' + wordsMap.length + ' items.');
 		var wordMapKey;
 		var word;
 		var matched = false;
@@ -124,8 +124,8 @@ function processNewPost(post, cb) {
 				} else {
 					// randomly select an action
 					action = actions[parseInt(Math.random() * actions.length)];
-					console.log('action.length=' + actions.length);
-					console.log(JSON.stringify(actions));
+					//console.log('action.length=' + actions.length);
+					console.log('matched action returned:' + JSON.stringify(action));
 					getCounter(action.key, function(count) {
 						setCounter(action.key);
 						action.param1 = action.param1.replace('{keyCounter}', count);
