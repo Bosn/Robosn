@@ -10,15 +10,8 @@ var http = require('http');
 var sys = require('sys');
 var mysql = require('mysql');
 var journey = require('journey');
-
-// initialize database
-var connection = mysql.createConnection({
-	host : '10.235.160.141',
-	user : 'root',
-	insecureAuth : 'true',
-	password : '880622'
-});
-
+var connection = createConnection();
+connection.connect();
 
 // initialize router
 var router = new (journey.Router);
@@ -28,13 +21,11 @@ router.map(function () {
 	});
 
 	this.get('/sendPost').bind(function(req, res, params) {
-		connection.connect();
 		connection.query('USE ' + DATABASE_NAME);
 		doesPostExist(params.id, function(exists){
 			if (exists) {
 				console.log('post with id = ' + params.id + ' exists, ignored');
 				res.send(200, {}, JSONP({isOk : false, msg :'post exists'}, params));
-				connection.end();
 				return;
 			}
 			connection.query('INSERT INTO tb_post SET id = ?, user_id = ?, post_date = ?, content = ?',
@@ -42,7 +33,6 @@ router.map(function () {
 				if (err) throw err;
 				processNewPost(params, function(data) {
 					res.send(200, {}, JSONP(data, params));
-					connection.end();
 				});
 			});
 		});
@@ -160,5 +150,28 @@ function setCounter(key) {
 		if (err) throw err;
 	});
 }
+
+// initialize database
+function createConnection() {
+	return mysql.createConnection({
+		host : '10.235.160.141',
+		user : 'root',
+		insecureAuth : 'true',
+		password : '880622'
+	});
+}
+
+function handleDisconnect() {
+	connection.on('error', function(err) {
+		if (!err.fatal) return;
+		if (err.code !== 'PROTOCOL_CONNECTION_LOST') throw err;
+		console.log('Re-connecting lost connection: ' + err.stack);
+		connection = createConnection();
+		handleDisconnect(connection);
+		connection.connect();
+	});
+}
+
+handleDisconnect();
 
 console.log('Robosn is listening at http://127.0.0.1:1988/');
