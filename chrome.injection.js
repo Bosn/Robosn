@@ -1,6 +1,7 @@
 !function(undefined) {
 	'use strict';
-	var HACK_NAME = ['貘吃馍香', '大城小胖', 'Rayi-', '寒冬winter', '_Franky', '不如归零', '三水清', '紫云妃', '姜太文', '王巖']; 
+	var HACK_NAME = ['貘吃馍香', '大城小胖', 'Rayi-', '寒冬winter', '_Franky', 
+		'不如归零', '三水清', '紫云妃', '姜太文', '王巖']; 
 	var SEC = 1;                                // prevent flush time interval
 	var INTERVAL = 10;                          // monitor time interval
 	var SERVER_ROOT = 'http://localhost:1988/'; // server root
