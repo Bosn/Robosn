@@ -1,7 +1,6 @@
 !function(undefined) {
 	'use strict';
-	var HACK_NAME = ['貘吃馍香', '大城小胖', 'Rayi-', '寒冬winter', '_Franky', 
-		'不如归零', '三水清', '紫云妃', '姜太文', '王巖']; 
+	var BLACK_LIST = ['Bosn'];
 	var SEC = 1;                                // prevent flush time interval
 	var INTERVAL = 10;                          // monitor time interval
 	var SERVER_ROOT = 'http://localhost:1988/'; // server root
@@ -9,8 +8,6 @@
 	var _processedMidList = [];
 	var ev = document.createEvent('HTMLEvents');
 	ev.initEvent('click', true, true);
-	var lastTime = new Date();
-	lastTime.setTime(new Date().getTime() - 1000 * SEC * 2);
 
 	setInterval(function() {
 		console.log('tick' + new Date().getTime());
@@ -39,8 +36,8 @@
 			}
 			_processedMidList.push(map.mid);
 			
-			if (true) {
-			//if (exists(HACK_NAME, map.name)) {
+			// prevent monitor myself
+			if (!exists(BLACK_LIST, map.name)) {
 				console.log('new post of ' + map.name + ' found!');
 				// don't process forward post
 				if (map.rootuid) {
@@ -61,10 +58,8 @@
 					});
 				}(ele);
 			}
-
 		}
 	}, 1000 * INTERVAL);
-
 
 	function isProcessed(map) {
 		for (var i = 0; i < _processedMidList.length; i++)
@@ -75,9 +70,6 @@
 
 	function process(ele, action) {
 		console.log('do action: ' + JSON.stringify(action));
-		// flush prevent
-		//if (new Date().getTime() - lastTime.getTime() < 1000 * SEC)
-			//return;
 
 		// forward
 		if (action.actionId == 1) {
@@ -97,7 +89,7 @@
 		} else if (action.actionId == 3) {
 
 		}
-		lastTime = new Date();
+		$('[action-type=feed_list_item]').remove();
 	}
 
 	function stripHtml(html) {
@@ -149,9 +141,4 @@
 		return false;
 	}
 	console.log('monitor started...');
-
-	// for debug
-	window.exports = {};
-	exports._processedMidList = _processedMidList;
-	exports.stripHtml = stripHtml;
 }();
