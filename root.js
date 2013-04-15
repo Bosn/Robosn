@@ -1,6 +1,6 @@
 var http = require('http');
 var journey = require('journey');
-var bll = require('./bll');
+var bll = require('./service/bll');
 
 // initialize router
 var router = new (journey.Router);
